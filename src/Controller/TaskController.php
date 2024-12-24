@@ -6,6 +6,7 @@ use App\Entity\Task;
 use App\Form\TaskType;
 use App\Repository\TaskRepository;
 use App\Security\Voter\TaskVoter;
+use App\Service\TaskService;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,7 +16,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class TaskController extends AbstractController
 {
-    public function __construct(private readonly EntityManagerInterface $entityManager)
+    public function __construct(
+        private readonly EntityManagerInterface $entityManager,
+        private readonly TaskService $taskService)
     {
     }
 
@@ -52,6 +55,11 @@ class TaskController extends AbstractController
     #[Route('/tasks/{id}/edit', name: 'task_edit')]
     public function edit(Task $task, Request $request): Response
     {
+        if (!$this->taskService->canEditTask($task)) {
+            $this->addFlash('error', 'Vous ne pouvez pas modifier une tâche créée il y a plus de 7 jours.');
+            return $this->redirectToRoute('task_index');
+        }
+
         if (!$this->isGranted(TaskVoter::EDIT, $task)) {
             $this->addFlash('error', 'Vous n\'avez pas les droits nécessaires pour modifier cette tâche.');
             return $this->redirectToRoute('task_index');
