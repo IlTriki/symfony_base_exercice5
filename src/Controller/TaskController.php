@@ -97,11 +97,6 @@ class TaskController extends AbstractController
     #[Route('/task/{id}', name: 'task_view')]
     public function view(Task $task): Response
     {
-        if (!$this->isGranted(TaskVoter::VIEW, $task)) {
-            $this->addFlash('error', 'Vous n\'avez pas les droits nécessaires pour voir cette tâche.');
-            return $this->redirectToRoute('task_index');
-        }
-
         return $this->render('task/view.html.twig', [
             'task' => $task,
         ]);
