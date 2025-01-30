@@ -35,7 +35,23 @@ class TaskControllerTest extends WebTestCase
     public function testTaskShowIsAccessibleWithMock(): void
     {
         $client = static::createClient();
-
+        
+        $task = new Task();
+        $task->setId(1);
+        $task->setName('Test Task');
+        $task->setDescription('Test Description');
+        
         $taskRepositoryMock = $this->createMock(TaskRepository::class);
+        $taskRepositoryMock->expects($this->once())
+            ->method('find')
+            ->with(1)
+            ->willReturn($task);
+        
+        $client->getContainer()->set(TaskRepository::class, $taskRepositoryMock);
+        
+        $client->request('GET', '/task/1');
+        
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('h1', 'Test Task');
     }
 }
